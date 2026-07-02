@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ticket Details</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0d1333;
+      color: white;
+      padding: 30px;
+    }
+    .box {
+      max-width: 450px;
+      margin: auto;
+      background: #131b47;
+      padding: 25px;
+      border-radius: 12px;
+    }
+    .title {
+      font-size: 22px;
+      margin-bottom: 10px;
+      color: #ff2e83;
+    }
+    .label {
+      font-size: 12px;
+      color: #aab4df;
+    }
+    .value {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      margin-top: 20px;
+      border-top: 1px solid #34407a;
+      padding-top: 15px;
+      text-align: center;
+      color: #aab4df;
+    }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <div class="title">Chigiri Express E-Ticket</div>
+
+  <div class="label">Passenger Name</div>
+  <div class="value" id="name"></div>
+
+  <div class="label">From</div>
+  <div class="value" id="from"></div>
+
+  <div class="label">To</div>
+  <div class="value" id="to"></div>
+
+  <div class="label">Distance</div>
+  <div class="value" id="distance"></div>
+
+  <div class="label">Fare</div>
+  <div class="value" id="amount"></div>
+
+  <div class="label">Booking Date</div>
+  <div class="value" id="date"></div>
+
+  <div class="label">Valid Till</div>
+  <div class="value" id="valid"></div>
+
+  <div class="section-title">QR Scanned Successfully</div>
+</div>
+
+<script>
+  async function loadTicket() {
+    const params = new URLSearchParams(window.location.search);
+    const ticketId = params.get("ticketId");
+
+    const res = await fetch(`http://localhost:5000/api/scan-ticket/${ticketId}`);
+    const data = await res.json();
+
+    if (data.message) {
+      alert(data.message);
+      return;
+    }
+
+    document.getElementById("name").innerText = data.userName;
+    document.getElementById("from").innerText = data.from;
+    document.getElementById("to").innerText = data.to;
+    document.getElementById("distance").innerText = data.distance + " km";
+    document.getElementById("amount").innerText = "₹" + data.amount;
+
+    document.getElementById("date").innerText =
+      new Date(data.createdAt).toLocaleString();
+
+    document.getElementById("valid").innerText =
+      new Date(data.validTill).toLocaleString();
+  }
+
+  loadTicket();
+</script>
+
+</body>
+</html>

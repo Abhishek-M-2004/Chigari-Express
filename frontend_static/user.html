@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User - Book Chigari</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+
+        #status {
+            position: absolute;
+            top: 10px;
+            left: 50px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status">📍 Locating you...</div>
+    <div id="map"></div>
+
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // 1. SETUP MAP (Default center: Hubballi, until we find user)
+        const map = L.map('map').setView([15.3647, 75.1240], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        let userLat = null;
+        let userLng = null;
+        let userMarker = null;
+        let busLayer = L.layerGroup().addTo(map); // Layer for buses
+
+        // Custom Bus Icon
+        const busIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png',
+            iconSize: [30, 30]
+        });
+
+        // 2. ASK FOR PERMISSION & GET REAL LOCATION
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+
+                    // Update Status
+                    document.getElementById('status').innerHTML = "✅ Location Found. Showing nearest buses.";
+
+                    // Move Map to User
+                    map.setView([userLat, userLng], 14);
+
+                    // Update User Marker
+                    if (userMarker) {
+                        userMarker.setLatLng([userLat, userLng]);
+                    } else {
+                        userMarker = L.marker([userLat, userLng]).addTo(map)
+                            .bindPopup("You are here").openPopup();
+                    }
+                },
+                (error) => {
+                    document.getElementById('status').innerHTML = "❌ Location Access Denied.";
+                    console.error("Error getting location:", error);
+                },
+                { enableHighAccuracy: true } // Request best possible GPS accuracy
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+
+        // 3. LISTEN FOR BUS UPDATES
+       const socket = io("http://localhost:5000");
+
+
+        socket.on('busUpdate', (buses) => {
+            // ONLY run if we have the user's location
+            if (userLat === null || userLng === null) return;
+
+            // Calculate Distance to User
+            buses.forEach(bus => {
+                bus.distance = Math.sqrt(
+                    Math.pow(bus.lat - userLat, 2) +
+                    Math.pow(bus.lng - userLng, 2)
+                );
+            });
+
+            // Sort by distance and pick top 3
+            buses.sort((a, b) => a.distance - b.distance);
+            const nearestBuses = buses.slice(0, 3);
+
+            // Draw Buses
+            busLayer.clearLayers();
+            nearestBuses.forEach(bus => {
+                L.marker([bus.lat, bus.lng], { icon: busIcon })
+                    .bindPopup(`<b>${bus.id}</b><br>Distance: ${(bus.distance * 111).toFixed(2)} km`) // Approx conversion to km
+                    .addTo(busLayer);
+            });
+        });
+    </script>
+</body>
+
+</html>

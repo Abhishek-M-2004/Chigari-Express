@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Ticket - Chigiri Express</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-core: #050505;
+            --bg-panel: #0a0a0f;
+            --bg-sidebar: #020202;
+            --accent: #ff003c;
+            --accent-dim: rgba(255, 0, 60, 0.1);
+            --text-white: #ffffff;
+            --text-gray: #8f90a6;
+            --border: rgba(255, 255, 255, 0.08);
+            --cut-size: 15px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-core); height: 100vh; width: 100vw; overflow: hidden; display: flex; color: var(--text-white); }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 280px; height: 100%; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px; z-index: 10; position: relative; }
+        .brand-area { display: flex; align-items: center; gap: 15px; margin-bottom: 50px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+        .brand-icon { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 15px var(--accent-dim); }
+        .brand-text h1 { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.2rem; text-transform: uppercase; line-height: 1; }
+        .brand-text p { font-size: 0.7rem; color: var(--text-gray); }
+        .user-mini { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; }
+        .avatar-mini { width: 35px; height: 35px; background: linear-gradient(135deg, #333, #111); color: var(--accent); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+        .user-details-mini h4 { font-size: 0.9rem; margin: 0; }
+        .user-details-mini p { font-size: 0.7rem; color: var(--text-gray); margin: 0; }
+        .nav-menu { display: flex; flex-direction: column; gap: 15px; flex-grow: 1; }
+        .nav-btn { width: 100%; padding: 15px 20px; background: rgba(255, 255, 255, 0.05); border: none; color: var(--text-gray); font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; text-align: left; position: relative; transition: 0.3s; display: flex; align-items: center; gap: 12px; clip-path: polygon(var(--cut-size) 0, 100% 0, 100% calc(100% - var(--cut-size)), calc(100% - var(--cut-size)) 100%, 0 100%, 0 var(--cut-size)); }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; padding-left: 25px; }
+        .nav-btn.active { background: var(--accent); color: white; box-shadow: 0 0 20px var(--accent-dim); }
+        .logout-btn { margin-top: auto; background: transparent; border: 1px solid var(--border); color: var(--text-gray); padding: 12px; border-radius: 4px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logout-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* --- DASHBOARD --- */
+        .main-dashboard { flex-grow: 1; background: var(--bg-panel); position: relative; overflow-y: auto; padding: 40px; }
+        .main-dashboard::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 20px 20px, 40px 40px; opacity: 0.5; pointer-events: none; z-index: 0; }
+        .content-wrapper { max-width: 1000px; margin: 0 auto; position: relative; z-index: 2; }
+        .dash-header { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; display: flex; justify-content: space-between; align-items: end; }
+        .dash-header h2 { font-family: 'Rajdhani', sans-serif; font-size: 2.5rem; text-transform: uppercase; margin: 0; }
+        .dash-header p { color: var(--text-gray); margin: 0; }
+
+        .booking-panel { background: rgba(20, 20, 25, 0.6); backdrop-filter: blur(10px); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 30px; margin-bottom: 30px; }
+        .route-selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .form-label { display: block; color: var(--text-gray); font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .tech-select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 15px; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
+        .tech-select:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.5); }
+        .tech-select option { background: #111; }
+
+        /* --- ANIMATED ROUTE VISUAL --- */
+        .route-visual {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02); padding: 30px 40px; margin: 20px 0;
+            position: relative;
+            height: 100px; /* Fixed height for animation area */
+        }
+        .route-line-bg { 
+            position: absolute; height: 2px; background: #333; 
+            top: 40px; /* Align with dots */
+            left: 55px; right: 55px; z-index: 0; 
+        }
+        
+        /* The Moving Bus */
+        .bus-icon-container {
+            position: absolute;
+            top: 25px; /* Sit on top of the line */
+            left: 55px;
+            z-index: 5;
+            color: var(--accent);
+            font-size: 24px;
+            filter: drop-shadow(0 0 8px var(--accent));
+            display: none; /* Hidden until active */
+        }
+        
+        .bus-active {
+            display: block;
+            animation: driveBus 3s linear infinite;
+        }
+
+        @keyframes driveBus {
+            0% { left: 55px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { left: calc(100% - 80px); opacity: 0; }
+        }
+
+        .station-node { position: relative; z-index: 1; text-align: center; width: 100px; }
+        .dot { 
+            width: 14px; height: 14px; 
+            background: var(--accent); 
+            border-radius: 50%; 
+            margin: 0 auto 15px auto; /* Space between dot and text */
+            box-shadow: 0 0 10px var(--accent); 
+            position: relative;
+        }
+        
+        /* Pulse effect for start/end dots */
+        .dot::after {
+            content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
+            border: 1px solid var(--accent); border-radius: 50%;
+            animation: pulseDot 2s infinite;
+        }
+        
+        @keyframes pulseDot { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        .node-label { font-size: 0.7rem; color: var(--text-gray); margin-bottom: 2px; letter-spacing: 1px; }
+        .node-name { font-size: 1rem; font-weight: 700; color: white; text-transform: uppercase; font-family: 'Rajdhani', sans-serif; }
+
+        /* Fare Grid */
+        .fare-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.4); padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); display: none; }
+        .fare-box { text-align: center; }
+        .fare-box small { display: block; color: var(--text-gray); font-size: 0.7rem; text-transform: uppercase; }
+        .fare-box strong { font-size: 1.2rem; color: var(--accent); font-family: 'Rajdhani', sans-serif; }
+
+        .action-btn { width: 100%; padding: 18px; background: var(--accent); border: none; color: white; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: 0.3s; }
+        .action-btn:hover:not(:disabled) { background: white; color: var(--accent); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #333; }
+
+        .ticket-panel { background: linear-gradient(135deg, rgba(20,20,25,0.9), rgba(10,10,10,0.95)); border: 1px solid var(--border); padding: 0; margin-top: 40px; display: none; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        .ticket-top { height: 8px; background: repeating-linear-gradient(45deg, var(--accent), var(--accent) 10px, transparent 10px, transparent 20px); }
+        .ticket-body { padding: 30px; display: flex; gap: 30px; }
+        .ticket-info { flex: 2; border-right: 1px dashed var(--border); padding-right: 30px; }
+        .ticket-qr-zone { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ticket-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .t-label { font-size: 0.75rem; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+        .t-val { font-size: 1.2rem; font-family: 'Rajdhani', sans-serif; font-weight: 600; color: white; }
+        .t-val.highlight { color: var(--accent); font-size: 1.5rem; }
+        #qr-image { width: 180px; height: 180px; background: white; padding: 10px; display: block; }
+        .alert-box, .email-box { padding: 15px; margin-bottom: 20px; border-left: 4px solid; display: none; font-size: 0.9rem; }
+        .alert-error { background: rgba(255, 0, 60, 0.1); border-color: var(--accent); color: var(--accent); }
+        .alert-success { background: rgba(0, 255, 157, 0.1); border-color: #00ff9d; color: #00ff9d; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-core); }
+        ::-webkit-scrollbar-thumb { background: #333; }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; }
+            .nav-menu { flex-direction: row; }
+            .route-selector-grid { grid-template-columns: 1fr; }
+            .ticket-body { flex-direction: column; }
+            .ticket-info { border-right: none; border-bottom: 1px dashed var(--border); padding-bottom: 20px; padding-right: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand-area">
+            <div class="brand-icon"><i class="fas fa-bolt"></i></div>
+            <div class="brand-text">
+                <h1>Chigiri<br>Express</h1>
+                <p>SYSTEM V.2.0</p>
+            </div>
+        </div>
+
+        <div class="user-mini">
+            <div class="avatar-mini" id="user-avatar">JD</div>
+            <div class="user-details-mini">
+                <h4 id="user-name">Loading...</h4>
+                <p id="user-email">...</p>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <button class="nav-btn active" onclick="showBookingSection()">
+                <i class="fas fa-ticket-alt"></i> Online Booking
+            </button>
+            <button class="nav-btn" onclick="goToLiveMap()">
+                <i class="fas fa-map-marked-alt"></i> Buses Near Me
+            </button>
+        </nav>
+
+        <button class="logout-btn" onclick="logout()">
+            <i class="fas fa-power-off"></i> TERMINATE SESSION
+        </button>
+    </aside>
+
+    <main class="main-dashboard">
+        <div class="content-wrapper">
+            
+            <div class="dash-header">
+                <div>
+                    <h2>CHIGARI EXPRESS</h2>
+                    <p>Select route coordinates and confirm passenger details.</p>
+                </div>
+                <div style="color: var(--accent); font-family: 'Rajdhani'; font-weight: 700;">
+                    STATUS: ONLINE
+                </div>
+            </div>
+
+            <div style="height: 30px;"></div>
+
+            <div class="alert-box alert-error" id="alert">
+                <i class="fas fa-exclamation-triangle"></i> <span id="alert-message">Error</span>
+            </div>
+            <div class="alert-box alert-success" id="email-notification" style="border-color: #00ff9d; color: #00ff9d;">
+                <i class="fas fa-envelope-open-text"></i> <span id="email-message">Email sent</span>
+            </div>
+
+            <div class="booking-panel">
+                <div class="route-selector-grid">
+                    <div>
+                        <label class="form-label">Departure Station [FROM]</label>
+                        <select id="from" class="tech-select" onchange="updateRoute()">
+                            <option value="">-- SELECT SOURCE --</option>
+                            <option value="Navanagar">Navanagar</option>
+                            <option value="Keshwapur">Keshwapur</option>
+                            <option value="CBT">CBT</option>
+                            <option value="Unkal">Unkal</option>
+                            <option value="Vidyanagar">Vidyanagar</option>
+                            <option value="Gokul Road">Gokul Road</option>
+                            <option value="Airport Road">Airport Road</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Arrival Station [TO]</label>
+                        <select id="to" class="tech-select" onchange="updateRoute()">
+                            <option value="">-- SELECT DEST --</option>
+                            <option value="Navanagar">Navanagar</option>
+                            <option value="Keshwapur">Keshwapur</option>
+                            <option value="CBT">CBT</option>
+                            <option value="Unkal">Unkal</option>
+                            <option value="Vidyanagar">Vidyanagar</option>
+                            <option value="Gokul Road">Gokul Road</option>
+                            <option value="Airport Road">Airport Road</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="route-visual">
+                    <div class="route-line-bg"></div>
+                    
+                    <div class="bus-icon-container" id="bus-anim">
+                        <i class="fas fa-bus"></i>
+                    </div>
+
+                    <div class="station-node" style="text-align: left;">
+                        <div class="dot" style="margin-left: 0;"></div>
+                        <div class="node-label">START</div>
+                        <div class="node-name" id="display-from">SELECT</div>
+                    </div>
+                    
+                    <div class="station-node" style="text-align: right;">
+                        <div class="dot" style="background: white; margin-left: auto;"></div>
+                        <div class="node-label">END</div>
+                        <div class="node-name" id="display-to">SELECT</div>
+                    </div>
+                </div>
+
+                <div class="fare-display fare-grid" id="fare-display">
+                    <div class="fare-box">
+                        <small>DISTANCE</small>
+                        <strong id="fare-distance">0 km</strong>
+                    </div>
+                    <div class="fare-box">
+                        <small>RATE</small>
+                        <strong>₹5/km</strong>
+                    </div>
+                    <div class="fare-box">
+                        <small>TOTAL</small>
+                        <strong id="fare-total">₹0</strong>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary action-btn" onclick="bookTicket()" id="book-btn" disabled>
+                    INITIATE BOOKING PROTOCOL
+                </button>
+            </div>
+
+            <div class="ticket-display ticket-panel" id="ticket-display">
+                <div class="ticket-top"></div>
+                <div class="ticket-body">
+                    <div class="ticket-info">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                            <h3 style="margin:0; font-family:'Rajdhani'; text-transform:uppercase;">E-Ticket Confirmation</h3>
+                            <span id="ticket-id" style="font-family:'Courier New'; color: var(--accent);">ID: ...</span>
+                        </div>
+                        
+                        <div class="ticket-row">
+                            <div><span class="t-label">PASSENGER</span><span class="t-val" id="ticket-name">Name</span></div>
+                            <div><span class="t-label">DATE</span><span class="t-val" id="ticket-date">--/--/--</span></div>
+                        </div>
+                        <div class="ticket-row">
+                            <div><span class="t-label">FROM</span><span class="t-val" id="ticket-from">Start</span></div>
+                            <div><span class="t-label">TO</span><span class="t-val" id="ticket-to">End</span></div>
+                        </div>
+                        <div class="ticket-row">
+                            <div><span class="t-label">VALID UNTIL</span><span class="t-val" id="ticket-valid">--:--</span></div>
+                            <div><span class="t-label">AMOUNT PAID</span><span class="t-val highlight" id="ticket-fare">₹0</span></div>
+                        </div>
+                        <span id="ticket-id-value" style="display:none;"></span>
+                    </div>
+
+                    <div class="ticket-qr-zone">
+                        <div class="qr-code">
+                            <img id="qr-image" alt="QR Code" />
+                        </div>
+                        <p style="font-size: 0.7rem; color: var(--text-gray); margin-top: 10px; text-align: center;">SCAN AT TERMINAL</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user._id) window.location.href = "login.html";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUserInfo();
+        });
+
+        function updateUserInfo() {
+            if (user) {
+                const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+                document.getElementById('user-avatar').textContent = initials;
+                document.getElementById('user-name').textContent = user.name || 'User';
+                document.getElementById('user-email').textContent = user.email || 'No email';
+            }
+        }
+
+        function showBookingSection() {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+        }
+
+        function goToLiveMap() {
+            const ticketIdElement = document.getElementById("ticket-id-value");
+            const ticketId = ticketIdElement ? ticketIdElement.textContent : "";
+            window.location.href = `user.html?ticketId=${ticketId}`;
+        }
+
+        function updateRoute() {
+            const from = document.getElementById('from').value;
+            const to = document.getElementById('to').value;
+            const fareDisplay = document.getElementById('fare-display');
+            const bookBtn = document.getElementById('book-btn');
+            const busAnim = document.getElementById('bus-anim');
+            
+            // Update station labels under the dots
+            document.getElementById('display-from').textContent = from || 'SELECT';
+            document.getElementById('display-to').textContent = to || 'SELECT';
+            
+            fareDisplay.style.display = 'none';
+            busAnim.classList.remove('bus-active'); // Stop animation if selection is incomplete
+            
+            if (from && to) {
+                if (from === to) {
+                    showAlert('Source and destination cannot be the same.', 'error');
+                    bookBtn.disabled = true;
+                    bookBtn.innerHTML = 'INVALID ROUTE';
+                    return;
+                }
+                
+                // Start Bus Animation
+                busAnim.classList.add('bus-active');
+
+                bookBtn.disabled = false;
+                bookBtn.innerHTML = 'INITIATE BOOKING PROTOCOL';
+                
+                const STOPS = {
+                    "Navanagar": 0, "Keshwapur": 2, "CBT": 4, "Unkal": 6,
+                    "Vidyanagar": 8, "Gokul Road": 10, "Airport Road": 12
+                };
+                
+                if (STOPS[from] !== undefined && STOPS[to] !== undefined) {
+                    const distance = Math.abs(STOPS[to] - STOPS[from]);
+                    const fare = Math.max(distance * 5, 10);
+                    
+                    document.getElementById('fare-distance').textContent = `${distance} km`;
+                    document.getElementById('fare-total').textContent = `₹${fare}`;
+                    fareDisplay.style.display = 'grid'; 
+                }
+            } else {
+                bookBtn.disabled = true;
+                bookBtn.innerHTML = 'AWAITING COORDINATES';
+            }
+        }
+
+        async function bookTicket() {
+            const from = document.getElementById('from').value;
+            const to = document.getElementById('to').value;
+            const bookBtn = document.getElementById('book-btn');
+            
+            if (!from || !to || from === to) return;
+            
+            const originalText = bookBtn.innerHTML;
+            bookBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+            bookBtn.disabled = true;
+            
+            try {
+                const res = await fetch("http://localhost:5000/api/create-ticket", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: user._id, from, to })
+                });
+
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showTicket(data.ticket);
+                    showEmailNotification(user.email);
+                    showAlert('Ticket booked successfully!', 'success');
+                } else {
+                    showAlert(`Error: ${data.message || 'Failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error. Check backend.', 'error');
+            } finally {
+                bookBtn.innerHTML = originalText;
+                bookBtn.disabled = false;
+            }
+        }
+
+        function showEmailNotification(email) {
+            const box = document.getElementById('email-notification');
+            document.getElementById('email-message').textContent = `Confirmation sent to ${email}`;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 8000);
+        }
+
+        function showTicket(ticket) {
+            const ticketDisplay = document.getElementById('ticket-display');
+            document.getElementById('ticket-name').textContent = user.name;
+            document.getElementById('ticket-from').textContent = ticket.from;
+            document.getElementById('ticket-to').textContent = ticket.to;
+            document.getElementById('ticket-fare').textContent = `₹${ticket.amount}`;
+            document.getElementById('ticket-id').textContent = 'ID: ' + (ticket.ticketId || '').substring(0, 8);
+            document.getElementById('ticket-id-value').textContent = ticket.ticketId;
+            
+            const d = new Date(ticket.createdAt || Date.now());
+            document.getElementById('ticket-date').textContent = d.toLocaleDateString();
+            document.getElementById('ticket-valid').textContent = new Date(ticket.validTill).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+            if (ticket.qrCodeDataURL) {
+                document.getElementById('qr-image').src = ticket.qrCodeDataURL;
+            }
+            ticketDisplay.style.display = 'block';
+            ticketDisplay.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert-box alert-${type}`;
+            document.getElementById('alert-message').innerHTML = message;
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 5000);
+        }
+
+        function logout() {
+            localStorage.removeItem("user");
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
